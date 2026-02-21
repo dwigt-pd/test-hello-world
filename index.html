@@ -3,280 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello Universe</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: radial-gradient(ellipse at center, #000000 0%, #1f011b 100%);
-            overflow: hidden;
-            gap: 24px;
-        }
-        canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-        }
-        h1 {
-            color: white;
-            font-size: 48px;
-            position: relative;
-            z-index: 1;
-            margin: 0;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-            transition: color 0.4s, text-shadow 0.4s;
-        }
-        h1.ludicrous-active {
-            color: #ff6600;
-            text-shadow: 0 0 30px rgba(255,100,0,0.9), 0 0 60px rgba(255,50,0,0.45);
-            animation: ludicrous-bounce 0.65s ease-in-out infinite;
-        }
-        @keyframes ludicrous-bounce {
-            0%   { transform: translate(0,    0)    rotate(-2deg) scale(1);    }
-            20%  { transform: translate(10px, -16px) rotate(3deg) scale(1.08); }
-            40%  { transform: translate(-8px,  7px) rotate(-2deg) scale(0.95); }
-            60%  { transform: translate(13px,  11px) rotate(4deg) scale(1.06); }
-            80%  { transform: translate(-5px, -9px) rotate(-3deg) scale(1.02); }
-            100% { transform: translate(0,    0)    rotate(-2deg) scale(1);    }
-        }
-        #plaid-gif {
-            display: none;
-            position: relative;
-            z-index: 1;
-            max-height: 60vh;
-            max-width: 90vw;
-        }
-
-        /* ── Control Panel ── */
-        #control-panel {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            display: grid;
-            grid-template-columns: auto 1px auto 1px auto;
-            grid-template-rows: auto auto;
-            column-gap: 28px;
-            row-gap: 10px;
-            align-items: center;
-            justify-items: center;
-            background: linear-gradient(160deg, #6e6e6e 0%, #444 40%, #2e2e2e 100%);
-            border-radius: 8px;
-            padding: 18px 28px 22px;
-            box-shadow:
-                6px 6px 18px rgba(0,0,0,0.85),
-                -1px -1px 0 rgba(255,255,255,0.08),
-                inset 0 1px 0 rgba(255,255,255,0.12),
-                inset 0 -2px 6px rgba(0,0,0,0.5);
-        }
-
-        /* Explicit grid placement */
-        #lbl-speed  { grid-column: 1; grid-row: 1; }
-        #lbl-armed  { grid-column: 3; grid-row: 1; }
-        #lbl-dome   { grid-column: 5; grid-row: 1; }
-        #knob-wrap  { grid-column: 1; grid-row: 2; }
-        #go-wrap    { grid-column: 3; grid-row: 2; }
-        #dome-btn   { grid-column: 5; grid-row: 2; }
-        .panel-divider { grid-row: 1 / 3; align-self: stretch; }
-
-        .panel-label {
-            font-size: 9px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #aaa;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-            font-family: Arial, sans-serif;
-            text-align: center;
-            line-height: 1.4;
-            height: 28px;
-            display: grid;
-            place-items: center;
-        }
-
-        .panel-divider {
-            width: 1px;
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent);
-        }
-
-        #go-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* ── Rotary Knob ── */
-        #knob-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        #knob-container {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            cursor: grab;
-            user-select: none;
-        }
-        #knob-container:active { cursor: grabbing; }
-
-        #knob-outer {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, #888 0%, #555 40%, #333 70%, #222 100%);
-            box-shadow:
-                0 8px 20px rgba(0,0,0,0.8),
-                inset 0 1px 3px rgba(255,255,255,0.15),
-                0 0 0 4px #2a2a2a,
-                0 0 0 6px #3a3a3a;
-        }
-
-        #knob-indicator {
-            position: absolute;
-            top: 10px;
-            left: calc(50% - 2px);
-            width: 4px;
-            height: 40px;
-            background: linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.55) 100%);
-            border-radius: 2px 2px 0 0;
-            transform-origin: 50% 100%; /* pivot = bottom of bar = center of 100px knob */
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        #speed-readout {
-            font-size: 10px;
-            font-weight: bold;
-            letter-spacing: 2px;
-            color: #ff9900;
-            text-shadow: 0 0 8px rgba(255,150,0,0.6);
-            font-family: 'Courier New', monospace;
-            text-align: center;
-            min-width: 90px;
-        }
-
-        /* ── GO Switch ── */
-        #go-switch-outer {
-            width: 34px;
-            height: 70px;
-            background: linear-gradient(to bottom, #3a3a3a 0%, #2a2a2a 100%);
-            border-radius: 5px;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.7), 0 0 0 2px #1e1e1e;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
-            padding: 5px;
-            position: relative;
-        }
-
-        #go-toggle {
-            width: 24px;
-            height: 28px;
-            border-radius: 3px;
-            background: linear-gradient(to bottom, #b02020 0%, #7a0000 100%);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,80,80,0.25);
-            transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                        background 0.3s, box-shadow 0.3s;
-            pointer-events: none;
-        }
-
-        #go-toggle.armed {
-            transform: translateY(-34px);
-            background: linear-gradient(to bottom, #ff5555 0%, #cc0000 100%);
-            box-shadow:
-                0 0 14px rgba(255,0,0,0.9),
-                0 0 30px rgba(255,0,0,0.4),
-                0 2px 6px rgba(0,0,0,0.7),
-                inset 0 1px 0 rgba(255,160,160,0.4);
-        }
-
-        #go-label {
-            font-size: 13px;
-            font-weight: bold;
-            letter-spacing: 3px;
-            color: #773333;
-            text-shadow: none;
-            transition: color 0.3s, text-shadow 0.3s;
-        }
-        #go-label.armed {
-            color: #ff5555;
-            text-shadow: 0 0 10px rgba(255,0,0,0.9);
-        }
-
-        /* ── Dome Button ── */
-        #dome-btn {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 36% 32%, #ffffff 0%, #e4e4e4 28%, #aaaaaa 58%, #777 82%, #555 100%);
-            box-shadow:
-                0 10px 28px rgba(0,0,0,0.75),
-                inset 0 -5px 10px rgba(0,0,0,0.25),
-                0 0 0 6px #4a4a4a,
-                0 0 0 8px #333;
-            border: none;
-            cursor: not-allowed;
-            transition: transform 0.08s, box-shadow 0.08s, background 0.2s, opacity 0.3s;
-            opacity: 0.4;
-        }
-        #dome-btn.armed {
-            cursor: pointer;
-            opacity: 1;
-            background: radial-gradient(circle at 36% 32%, #ffffff 0%, #f0f0f0 28%, #d8d8d8 58%, #aaa 82%, #888 100%);
-            animation: dome-ready 1.4s ease-in-out infinite alternate;
-        }
-        #dome-btn.armed:hover {
-            background: radial-gradient(circle at 36% 32%, #ffffff 0%, #f8f8f8 28%, #e5e5e5 58%, #bbb 82%, #999 100%);
-            transform: scale(1.03);
-        }
-        #dome-btn.armed:active {
-            transform: scale(0.94) translateY(4px);
-        }
-        #dome-btn.active {
-            cursor: pointer;
-            opacity: 1;
-            background: radial-gradient(circle at 36% 32%, #ff9999 0%, #ff4444 28%, #cc0000 58%, #880000 82%, #550000 100%);
-            box-shadow:
-                0 0 30px rgba(255,0,0,0.8),
-                0 0 60px rgba(255,0,0,0.3),
-                0 10px 28px rgba(0,0,0,0.75),
-                inset 0 -5px 10px rgba(0,0,0,0.25),
-                0 0 0 6px #4a4a4a,
-                0 0 0 8px #333;
-            animation: dome-pulse 0.5s ease-in-out infinite alternate;
-        }
-        #dome-btn.active:hover { transform: scale(1.03); }
-        #dome-btn.active:active { transform: scale(0.94) translateY(4px); }
-        #dome-btn:focus-visible {
-            outline: 3px solid white;
-            outline-offset: 6px;
-        }
-
-        @keyframes dome-ready {
-            from { box-shadow: 0 0 6px rgba(255,255,255,0.2), 0 10px 28px rgba(0,0,0,0.75), inset 0 -5px 10px rgba(0,0,0,0.25), 0 0 0 6px #4a4a4a, 0 0 0 8px #333; }
-            to   { box-shadow: 0 0 22px rgba(255,255,255,0.75), 0 10px 28px rgba(0,0,0,0.75), inset 0 -5px 10px rgba(0,0,0,0.25), 0 0 0 6px #4a4a4a, 0 0 0 8px #333; }
-        }
-        @keyframes dome-pulse {
-            from { box-shadow: 0 0 18px rgba(255,0,0,0.6), 0 10px 28px rgba(0,0,0,0.75), inset 0 -5px 10px rgba(0,0,0,0.25), 0 0 0 6px #4a4a4a, 0 0 0 8px #333; }
-            to   { box-shadow: 0 0 45px rgba(255,0,0,1), 0 0 80px rgba(255,0,0,0.35), 0 10px 28px rgba(0,0,0,0.75), inset 0 -5px 10px rgba(0,0,0,0.25), 0 0 0 6px #4a4a4a, 0 0 0 8px #333; }
-        }
-    </style>
+    <title>Hello, Universe!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <canvas id="starfield"></canvas>
-    <h1 id="title">🚀 Hello Universe! 🚀</h1>
+
+    <!-- Volume control -->
+    <div id="vol-control">
+        <button id="vol-btn" aria-label="Audio settings" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+        </button>
+        <div id="vol-dropdown" role="menu">
+            <div class="vol-row">
+                <button id="mute-btn" aria-label="Mute audio">
+                    <svg id="mute-icon-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                    <svg id="mute-icon-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true" style="display:none">
+                        <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                    </svg>
+                </button>
+                <input type="range" id="vol-slider" min="0" max="1" step="0.01" value="0.7" aria-label="Master volume">
+            </div>
+            <div class="vol-sep"></div>
+            <a href="#" id="attr-link">Sound attributions ↗</a>
+        </div>
+    </div>
+
+    <!-- Attributions modal -->
+    <div id="attr-modal" role="dialog" aria-modal="true" aria-labelledby="attr-heading">
+        <div id="attr-modal-inner">
+            <button id="attr-close" aria-label="Close">✕</button>
+            <h2 id="attr-heading">Sound Attributions</h2>
+            <ul>
+                <li>
+                    <span class="attr-title">"Spaceship Engine 1"</span>
+                    By <a href="https://freesound.org/people/InSintesi/" target="_blank" rel="noopener">InSintesi</a>
+                    via <a href="https://freesound.org/people/InSintesi/sounds/347613/" target="_blank" rel="noopener">freesound.org</a><br>
+                    License: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>
+                </li>
+                <li>
+                    <span class="attr-title">"Spaceship Interface 01"</span>
+                    By <a href="https://freesound.org/people/Debsound/" target="_blank" rel="noopener">Debsound</a>
+                    via <a href="https://freesound.org/people/Debsound/sounds/251229/" target="_blank" rel="noopener">freesound.org</a><br>
+                    License: <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>
+                </li>
+                <li>
+                    <span class="attr-title">"Key Punch"</span>
+                    By <a href="https://freesound.org/people/eben-frostey/" target="_blank" rel="noopener">eben-frostey</a>
+                    via <a href="https://freesound.org/people/eben-frostey/sounds/611515/" target="_blank" rel="noopener">freesound.org</a><br>
+                    License: <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0 (Public Domain)</a>
+                </li>
+                <li>
+                    <span class="attr-title">"Click 02"</span>
+                    By <a href="https://freesound.org/people/moogy73/" target="_blank" rel="noopener">moogy73</a>
+                    via <a href="https://freesound.org/people/moogy73/sounds/425727/" target="_blank" rel="noopener">freesound.org</a><br>
+                    License: <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0 (Public Domain)</a>
+                </li>
+                <li>
+                    <span class="attr-title">"Future Alarm 1"</span>
+                    By <a href="https://freesound.org/people/Tissman/" target="_blank" rel="noopener">Tissman</a>
+                    via <a href="https://freesound.org/people/Tissman/sounds/528659/" target="_blank" rel="noopener">freesound.org</a><br>
+                    License: <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0 (Public Domain)</a>
+                </li>
+                <li>
+                    <span class="attr-title">"Power Down"</span>
+                    By <a href="https://freesound.org/people/DrMrSir/" target="_blank" rel="noopener">DrMrSir</a>
+                    via <a href="https://freesound.org/people/DrMrSir/sounds/529558/" target="_blank" rel="noopener">freesound.org</a><br>
+                    License: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <h1 id="title">🚀 Hello, Universe! 🚀</h1>
     <img id="plaid-gif" src="https://static.tvtropes.org/pmwiki/pub/images/ludicrous_speed.jpg" alt="Ludicrous speed - we've gone to plaid!" />
 
     <div id="control-panel" role="group" aria-label="Speed controls">
@@ -331,12 +137,14 @@
         const DIAL_MAX     =  135;
         const ARMED_ANGLE  =  115;   // dome button arms above this
         const SPEED_MAX    =   28;
-        const SPEED_PLAID  =   45;
+        const SPEED_PLAID  =   90;
 
-        let dialAngle    = -45;      // start roughly at LIGHT
-        let plaid        = false;
-        let currentSpeed = 0;
-        let tunnelOffset = 0;
+        let dialAngle      = -45;      // start roughly at LIGHT
+        let dialAnimTarget = null;     // non-null while auto-returning to LIGHT
+        let wasArmed       = false;    // tracks armed state for arm-sound trigger
+        let plaid          = false;
+        let currentSpeed   = 0;
+        let tunnelOffset   = 0;
 
         function angleToSpeed(angle) {
             const t = (angle - DIAL_MIN) / (DIAL_MAX - DIAL_MIN); // 0..1
@@ -364,6 +172,9 @@
                 exitPlaid();
             }
 
+            if (armed && !wasArmed) playArm();
+            wasArmed = armed;
+
             goToggle.classList.toggle('armed', armed);
             goLabel.classList.toggle('armed', armed);
 
@@ -383,19 +194,23 @@
             domeBtn.classList.remove('armed');
             domeBtn.classList.add('active');
             domeBtn.setAttribute('aria-label', 'Disengage ludicrous speed');
-            goToggle.classList.remove('armed');
-            goLabel.classList.remove('armed');
             title.textContent = 'Ahhhhhh!!!!!';
             title.classList.add('ludicrous-active');
             gif.style.display = 'block';
+            playLudicrous();
+            startAlarm();
         }
 
         function exitPlaid() {
-            plaid = false;
+            plaid          = false;
+            dialAnimTarget = -45;  // gradual return to LIGHT
             domeBtn.classList.remove('active');
             domeBtn.setAttribute('aria-label', 'Engage ludicrous speed');
             gif.style.display   = 'none';
-            title.textContent   = '🚀 Hello Universe! 🚀';
+            stopAlarm();
+            playDisarm();
+            wasArmed            = false;
+            title.textContent   = '🚀 Hello, Universe! 🚀';
             title.classList.remove('ludicrous-active');
             const armed = dialAngle >= ARMED_ANGLE;
             goToggle.classList.toggle('armed', armed);
@@ -408,32 +223,55 @@
         }
 
         // ── Knob drag ────────────────────────────────────────────────────
-        let dragging       = false;
-        let dragStartY     = 0;
-        let dragStartAngle = 0;
+        let dragging         = false;
+        let lastPointerAngle = 0;
+        let clickAccum       = 0;         // accumulated rotation for click detents
+        const CLICK_STEP     = 20;        // degrees per click
+
+        function knobCenterAngle(clientX, clientY) {
+            const rect = knobEl.getBoundingClientRect();
+            const cx = rect.left + rect.width  / 2;
+            const cy = rect.top  + rect.height / 2;
+            return Math.atan2(clientY - cy, clientX - cx);
+        }
+
+        function applyKnobDelta(newAngle) {
+            let delta = newAngle - lastPointerAngle;
+            // Normalise wrap-around so dragging past 180° doesn't jump
+            if (delta >  Math.PI) delta -= Math.PI * 2;
+            if (delta < -Math.PI) delta += Math.PI * 2;
+            lastPointerAngle = newAngle;
+            const degrees = delta * (180 / Math.PI);
+            setDialAngle(dialAngle + degrees);
+            clickAccum += Math.abs(degrees);
+            while (clickAccum >= CLICK_STEP) {
+                clickAccum -= CLICK_STEP;
+                playClick();
+            }
+        }
 
         knobEl.addEventListener('mousedown', e => {
-            dragging       = true;
-            dragStartY     = e.clientY;
-            dragStartAngle = dialAngle;
+            dragging         = true;
+            dialAnimTarget   = null;   // cancel auto-return if user grabs knob
+            lastPointerAngle = knobCenterAngle(e.clientX, e.clientY);
             e.preventDefault();
         });
         window.addEventListener('mousemove', e => {
             if (!dragging) return;
-            setDialAngle(dragStartAngle + (dragStartY - e.clientY) * 1.8);
+            applyKnobDelta(knobCenterAngle(e.clientX, e.clientY));
         });
         window.addEventListener('mouseup', () => { dragging = false; });
 
         knobEl.addEventListener('touchstart', e => {
-            dragging       = true;
-            dragStartY     = e.touches[0].clientY;
-            dragStartAngle = dialAngle;
+            dragging         = true;
+            dialAnimTarget   = null;   // cancel auto-return if user grabs knob
+            lastPointerAngle = knobCenterAngle(e.touches[0].clientX, e.touches[0].clientY);
             e.preventDefault();
         }, { passive: false });
         window.addEventListener('touchmove', e => {
             if (!dragging) return;
-            setDialAngle(dragStartAngle + (dragStartY - e.touches[0].clientY) * 1.8);
-        }, { passive: true });
+            applyKnobDelta(knobCenterAngle(e.touches[0].clientX, e.touches[0].clientY));
+        }, { passive: false });
         window.addEventListener('touchend', () => { dragging = false; });
 
         knobEl.addEventListener('keydown', e => {
@@ -448,7 +286,7 @@
         });
 
         // ── Starfield ────────────────────────────────────────────────────
-        const NUM_STARS = 300;
+        const NUM_STARS = 500;
 
         function newStar(spreadOut = false) {
             return {
@@ -463,15 +301,16 @@
         const stars = Array.from({ length: NUM_STARS }, () => newStar(true));
 
         function drawTunnel(cx, cy) {
-            tunnelOffset += 0.007;
+            tunnelOffset += 0.028;
 
-            const numRings = 10;
-            const maxW = canvas.width  * 0.88;
-            const maxH = canvas.height * 0.88;
+            const numRings = 18;
+            const maxW = canvas.width  * 0.92;
+            const maxH = canvas.height * 0.92;
 
-            ctx.lineWidth   = 2;
-            ctx.strokeStyle = 'rgba(255, 100, 0, 0.75)';
-            for (const [sx, sy] of [[-1,-1],[1,-1],[1,1],[-1,1]]) {
+            // Perspective lines: 4 corners + 4 cardinal edges
+            ctx.lineWidth   = 1.5;
+            ctx.strokeStyle = 'rgba(255, 120, 0, 0.55)';
+            for (const [sx, sy] of [[-1,-1],[1,-1],[1,1],[-1,1],[0,-1],[1,0],[0,1],[-1,0]]) {
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
                 ctx.lineTo(cx + sx * maxW / 2, cy + sy * maxH / 2);
@@ -480,25 +319,28 @@
 
             for (let i = 0; i < numRings; i++) {
                 const t     = ((i / numRings) + tunnelOffset) % 1;
-                const scale = t * t;
-                if (scale < 0.004) continue;
+                const scale = t;
+                if (scale < 0.02) continue;
                 const w     = maxW * scale;
                 const h     = maxH * scale;
-                const alpha = Math.min(1, t * 1.5) * 0.9;
+                const alpha = Math.min(1, t * 2) * 0.85;
                 const green = Math.floor(60 + t * 80);
                 ctx.strokeStyle = `rgba(255, ${green}, 0, ${alpha})`;
-                ctx.lineWidth   = 1 + t * 2.5;
+                ctx.lineWidth   = 1 + t * 3;
                 ctx.strokeRect(cx - w / 2, cy - h / 2, w, h);
             }
 
-            const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 110);
-            glow.addColorStop(0,    'rgba(255, 250, 210, 1)');
-            glow.addColorStop(0.12, 'rgba(255, 200, 80,  0.85)');
-            glow.addColorStop(0.4,  'rgba(255, 80,  0,   0.3)');
-            glow.addColorStop(1,    'rgba(0, 0, 0, 0)');
+            // Large warm radial glow — proportional to viewport
+            const glowR = Math.min(cx, cy) * 0.65;
+            const glow  = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowR);
+            glow.addColorStop(0,    'rgba(255, 255, 220, 1)');
+            glow.addColorStop(0.07, 'rgba(255, 230, 100, 0.95)');
+            glow.addColorStop(0.22, 'rgba(255, 140, 20,  0.75)');
+            glow.addColorStop(0.5,  'rgba(255, 55,  0,   0.3)');
+            glow.addColorStop(1,    'rgba(0,   0,   0,   0)');
             ctx.fillStyle = glow;
             ctx.beginPath();
-            ctx.arc(cx, cy, 110, 0, Math.PI * 2);
+            ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
             ctx.fill();
         }
 
@@ -506,6 +348,17 @@
             const cx      = canvas.width  / 2;
             const cy      = canvas.height / 2;
             const maxDist = Math.sqrt(cx * cx + cy * cy);
+
+            // Gradually return dial to LIGHT after exiting plaid
+            if (dialAnimTarget !== null) {
+                const next = dialAngle + (dialAnimTarget - dialAngle) * 0.04;
+                if (Math.abs(next - dialAnimTarget) < 0.5) {
+                    setDialAngle(dialAnimTarget);
+                    dialAnimTarget = null;
+                } else {
+                    setDialAngle(next);
+                }
+            }
 
             const targetSpeed = plaid ? SPEED_PLAID : angleToSpeed(dialAngle);
             currentSpeed += (targetSpeed - currentSpeed) * 0.08;
@@ -524,8 +377,8 @@
                 const px = cx + Math.cos(star.angle) * prevDist   * maxDist;
                 const py = cy + Math.sin(star.angle) * prevDist   * maxDist;
 
-                const radius      = star.dist * 1.5;
-                const baseOpacity = Math.min(1, star.dist * 1.5);
+                const radius      = Math.max(0.8, star.dist * 2.2);
+                const baseOpacity = Math.min(1, 0.25 + star.dist * 1.2);
 
                 star.flickerPhase = (star.flickerPhase + star.flickerSpeed) % (Math.PI * 2);
                 const flicker = 0.35 + 0.65 * Math.abs(Math.sin(star.flickerPhase));
@@ -547,7 +400,7 @@
                     if (streakBlend < 0.99) {
                         ctx.fillStyle = `rgba(255, 255, 255, ${baseOpacity * flicker * (1 - streakBlend)})`;
                         ctx.beginPath();
-                        ctx.arc(x, y, Math.max(0.4, radius * 0.7), 0, Math.PI * 2);
+                        ctx.arc(x, y, Math.max(1.5, radius * 0.9), 0, Math.PI * 2);
                         ctx.fill();
                     }
                     // Streak — fades in as speed rises
@@ -565,9 +418,227 @@
             }
 
             if (plaid) drawTunnel(cx, cy);
+            updateAudio();
             requestAnimationFrame(draw);
         }
 
+        // ── Audio ────────────────────────────────────────────────────────
+        const audioCtx   = new (window.AudioContext || window.webkitAudioContext)();
+        let engineGain    = null;
+        let engineSrc     = null;
+        let ludicrousBuf  = null;
+        let armBuf        = null;
+        let alarmBuf      = null;
+        let clickBuf      = null;
+        let disarmBuf     = null;
+        let alarmSrc      = null;
+        let alarmGain     = null;
+        let audioReady    = false;
+        let masterVol     = 0.7;
+
+        async function initAudio() {
+            await audioCtx.resume();
+            if (audioReady) return;
+
+            const [engineRaw, ludicrousRaw, armRaw, alarmRaw, clickRaw, disarmRaw] = await Promise.all([
+                fetch('audio/347613__insintesi__spaceship-engine-1.wav').then(r => r.arrayBuffer()),
+                fetch('audio/251229__debsound__spaceship-interface-01.wav').then(r => r.arrayBuffer()),
+                fetch('audio/611515__eben-frostey__key-punch.mp3').then(r => r.arrayBuffer()),
+                fetch('audio/528659__tissman__future-alarm-1.wav').then(r => r.arrayBuffer()),
+                fetch('audio/425727__moogy73__click02.wav').then(r => r.arrayBuffer()),
+                fetch('audio/529558__drmrsir__power-down.wav').then(r => r.arrayBuffer()),
+            ]);
+
+            const [engineDecoded, ludicrousDecoded, armDecoded, alarmDecoded, clickDecoded, disarmDecoded] = await Promise.all([
+                audioCtx.decodeAudioData(engineRaw),
+                audioCtx.decodeAudioData(ludicrousRaw),
+                audioCtx.decodeAudioData(armRaw),
+                audioCtx.decodeAudioData(alarmRaw),
+                audioCtx.decodeAudioData(clickRaw),
+                audioCtx.decodeAudioData(disarmRaw),
+            ]);
+
+            engineGain            = audioCtx.createGain();
+            engineGain.gain.value = 0;
+            engineGain.connect(audioCtx.destination);
+
+            engineSrc        = audioCtx.createBufferSource();
+            engineSrc.buffer = engineDecoded;
+            engineSrc.loop   = true;
+            engineSrc.connect(engineGain);
+            engineSrc.start();
+
+            ludicrousBuf = ludicrousDecoded;
+            armBuf       = armDecoded;
+            alarmBuf     = alarmDecoded;
+            clickBuf     = clickDecoded;
+            disarmBuf    = disarmDecoded;
+
+            alarmGain            = audioCtx.createGain();
+            alarmGain.gain.value = 0;
+            alarmGain.connect(audioCtx.destination);
+
+            audioReady = true;
+        }
+
+        function playClick() {
+            if (!clickBuf) return;
+            const gain      = audioCtx.createGain();
+            gain.gain.value = masterVol * 0.2;
+            gain.connect(audioCtx.destination);
+            const src  = audioCtx.createBufferSource();
+            src.buffer = clickBuf;
+            src.connect(gain);
+            src.start();
+        }
+
+        function playArm() {
+            if (!armBuf) return;
+            const gain      = audioCtx.createGain();
+            gain.gain.value = masterVol;
+            gain.connect(audioCtx.destination);
+            const src  = audioCtx.createBufferSource();
+            src.buffer = armBuf;
+            src.connect(gain);
+            src.start();
+        }
+
+        function playDisarm() {
+            if (!disarmBuf) return;
+            const gain      = audioCtx.createGain();
+            gain.gain.value = masterVol * 0.5;
+            gain.connect(audioCtx.destination);
+            const src  = audioCtx.createBufferSource();
+            src.buffer = disarmBuf;
+            src.connect(gain);
+            src.start();
+        }
+
+        function startAlarm() {
+            if (!alarmBuf || !alarmGain) return;
+            alarmSrc        = audioCtx.createBufferSource();
+            alarmSrc.buffer = alarmBuf;
+            alarmSrc.loop   = true;
+            alarmSrc.connect(alarmGain);
+            alarmSrc.start();
+            alarmGain.gain.setTargetAtTime(masterVol, audioCtx.currentTime, 0.3);
+        }
+
+        function stopAlarm() {
+            if (!alarmSrc || !alarmGain) return;
+            alarmGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.3);
+            const src = alarmSrc;
+            alarmSrc  = null;
+            setTimeout(() => { try { src.stop(); } catch(_) {} }, 1000);
+        }
+
+        function playLudicrous() {
+            if (!ludicrousBuf) return;
+            const gain  = audioCtx.createGain();
+            gain.gain.value = masterVol;
+            gain.connect(audioCtx.destination);
+            const src   = audioCtx.createBufferSource();
+            src.buffer  = ludicrousBuf;
+            src.connect(gain);
+            src.start();
+        }
+
+        function updateAudio() {
+            if (!audioReady) return;
+            const t = Math.min(1, currentSpeed / SPEED_PLAID);
+            engineGain.gain.value        = masterVol * (0.75 + t * 0.25);
+            engineSrc.playbackRate.value = 0.5 + t * 1.0;
+        }
+
+        // Start audio on first user gesture (browser autoplay policy)
+        function onFirstGesture() {
+            initAudio();
+            document.removeEventListener('mousedown',  onFirstGesture);
+            document.removeEventListener('click',      onFirstGesture);
+            document.removeEventListener('keydown',    onFirstGesture);
+            document.removeEventListener('touchstart', onFirstGesture);
+        }
+        document.addEventListener('mousedown',  onFirstGesture);
+        document.addEventListener('click',      onFirstGesture);
+        document.addEventListener('keydown',    onFirstGesture);
+        document.addEventListener('touchstart', onFirstGesture);
+
+        // ── Volume dropdown ──────────────────────────────────────────────
+        const volBtn      = document.getElementById('vol-btn');
+        const volDropdown = document.getElementById('vol-dropdown');
+        const volSlider   = document.getElementById('vol-slider');
+        const muteBtn     = document.getElementById('mute-btn');
+        const muteIconOn  = document.getElementById('mute-icon-on');
+        const muteIconOff = document.getElementById('mute-icon-off');
+        const attrLink    = document.getElementById('attr-link');
+        const attrModal   = document.getElementById('attr-modal');
+        const attrClose   = document.getElementById('attr-close');
+
+        let muted         = false;
+        let preMuteVol    = masterVol;
+
+        volBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            const open = volDropdown.classList.toggle('open');
+            volBtn.setAttribute('aria-expanded', open);
+        });
+
+        volSlider.addEventListener('input', () => {
+            masterVol = parseFloat(volSlider.value);
+            if (muted && masterVol > 0) {
+                muted = false;
+                muteBtn.classList.remove('muted');
+                muteBtn.setAttribute('aria-label', 'Mute audio');
+                muteIconOn.style.display  = '';
+                muteIconOff.style.display = 'none';
+            }
+        });
+
+        muteBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            muted = !muted;
+            if (muted) {
+                preMuteVol = masterVol;
+                masterVol  = 0;
+                volSlider.value = 0;
+                muteBtn.classList.add('muted');
+                muteBtn.setAttribute('aria-label', 'Unmute audio');
+                muteIconOn.style.display  = 'none';
+                muteIconOff.style.display = '';
+            } else {
+                masterVol = preMuteVol || 0.7;
+                volSlider.value = masterVol;
+                muteBtn.classList.remove('muted');
+                muteBtn.setAttribute('aria-label', 'Mute audio');
+                muteIconOn.style.display  = '';
+                muteIconOff.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('click', e => {
+            if (!volDropdown.contains(e.target) && e.target !== volBtn) {
+                volDropdown.classList.remove('open');
+                volBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        attrLink.addEventListener('click', e => {
+            e.preventDefault();
+            volDropdown.classList.remove('open');
+            volBtn.setAttribute('aria-expanded', 'false');
+            attrModal.classList.add('open');
+        });
+
+        function closeAttrModal() { attrModal.classList.remove('open'); }
+        attrClose.addEventListener('click', closeAttrModal);
+        attrModal.addEventListener('click', e => {
+            if (e.target === attrModal) closeAttrModal();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeAttrModal();
+        });
+
+        // ── Start ────────────────────────────────────────────────────────
         setDialAngle(-45);
         draw();
 
